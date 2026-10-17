@@ -31,10 +31,13 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          ports:
-            - containerPort: {{ .Values.service.port }}
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.service.port }}
+          image: "tu-usuario/api-gateway:{{ .Values.image.tag }}"
+          securityContext:      
+            runAsNonRoot: true
+          resources:             
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
