@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ include "sa-platform.fullname" . }}-limits
+  namespace: {{ .Values.global.namespace }}
+spec:
+  limits:
+    - default:
+        cpu: {{ .Values.limitRange.defaultCpu }}
+        memory: {{ .Values.limitRange.defaultMemory }}
+      defaultRequest:
+        cpu: {{ .Values.limitRange.defaultRequestCpu }}
+        memory: {{ .Values.limitRange.defaultRequestMemory }}
+      type: Container

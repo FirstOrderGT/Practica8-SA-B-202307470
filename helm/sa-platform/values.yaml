@@ -1,0 +1,40 @@
+global:
+  namespace: sa-p8
+  environment: production
+  logLevel: info
+  jwtSecret: "super_secret_jwt_key_base"
+  aesSecret: "super_secret_aes_32_characters"
+
+resourceQuota:
+  requestsCpu: "4"
+  requestsMemory: 8Gi
+  limitsCpu: "8"
+  limitsMemory: 16Gi
+  pods: "30"
+
+limitRange:
+  defaultCpu: 500m
+  defaultMemory: 512Mi
+  defaultRequestCpu: 100m
+  defaultRequestMemory: 128Mi
+
+postgresql:
+  enabled: true
+  auth:
+    username: toy_admin
+    password: toy_secure_password_123
+    database: toy_store_db
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "standard-rwo"
+      size: 1Gi
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: rabbit_admin
+    password: rabbit_secure_password_123
+  persistence:
+    enabled: true
+    size: 8Gi

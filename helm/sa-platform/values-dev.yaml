@@ -1,0 +1,33 @@
+global:
+  environment: development
+  logLevel: debug
+
+postgresql:
+  primary:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+rabbitmq:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+api-gateway:
+  replicaCount: 1
+auth-service:
+  replicaCount: 1
+authz-service:
+  replicaCount: 1
+products-service:
+  replicaCount: 1
+orders-service:
+  replicaCount: 1
+cart-service:
+  replicaCount: 1
+reviews-service:
+  replicaCount: 1
+frontend:
+  replicaCount: 1

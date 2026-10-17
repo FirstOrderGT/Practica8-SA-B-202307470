@@ -1,0 +1,17 @@
+global:
+  namespace: sa-p8
+  environment: production
+  logLevel: info
+  jwtSecret: "CHANGE_ME_JWT_KEY"
+  aesSecret: "CHANGE_ME_AES_KEY_32_CHARACTERS"
+
+postgresql:
+  auth:
+    username: "db_user"
+    password: "DUMMY_DB_PASSWORD"
+    database: "toy_store_db"
+
+rabbitmq:
+  auth:
+    username: "rabbit_user"
+    password: "DUMMY_RABBITMQ_PASSWORD"

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-sa-platform-config
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+data:
+  # URL directa que espera la librería de Neon/pg
+  DATABASE_URL: "postgresql://toy_admin:toy_secure_password_123@sa-platform-postgresql:5432/toy_store_db?sslmode=disable"
+  DB_URL: "postgresql://toy_admin:toy_secure_password_123@sa-platform-postgresql:5432/toy_store_db?sslmode=disable"
+  
+  # Flags para desactivar SSL en clientes de node-pg
+  PGSSLMODE: "disable"
+  NODE_TLS_REJECT_UNAUTHORIZED: "0"
+
+  # Variables separadas
+  DB_HOST: "sa-platform-postgresql"
+  POSTGRES_HOST: "sa-platform-postgresql"
+  PGHOST: "sa-platform-postgresql"
+  DB_PORT: "5432"
+  DB_NAME: "toy_store_db"
+  
+  # RabbitMQ
+  RABBITMQ_HOST: "sa-platform-rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_URL: "amqp://rabbit_admin:rabbit_secure_password_123@sa-platform-rabbitmq:5672"

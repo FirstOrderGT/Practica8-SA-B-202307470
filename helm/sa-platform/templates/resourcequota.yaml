@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ include "sa-platform.fullname" . }}-quota
+  namespace: {{ .Values.global.namespace }}
+spec:
+  hard:
+    requests.cpu: {{ quote .Values.resourceQuota.requestsCpu }}
+    requests.memory: {{ quote .Values.resourceQuota.requestsMemory }}
+    limits.cpu: {{ quote .Values.resourceQuota.limitsCpu }}
+    limits.memory: {{ quote .Values.resourceQuota.limitsMemory }}
+    pods: {{ quote .Values.resourceQuota.pods }}

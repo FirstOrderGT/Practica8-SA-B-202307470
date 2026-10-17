@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: gateway-success-rate
+  namespace: {{ .Values.global.namespace }}
+spec:
+  args:
+    - name: canary-url
+  metrics:
+    - name: check-health
+      interval: 10s
+      count: 3
+      failureLimit: 1
+      provider:
+        job:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: test
+                    image: curlimages/curl:latest
+                    command: ["/bin/sh", "-c"]
+                    args:
+                      - |
+                        STATUS=$(curl -s -o /dev/null -w "%{http_code}" {{args.canary-url}})
+                        if [ "$STATUS" -eq 200 ]; then exit 0; else exit 1; fi
+                restartPolicy: Never
+            backoffLimit: 0

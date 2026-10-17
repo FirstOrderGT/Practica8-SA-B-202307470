@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: api-gateway
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  strategy:
+    canary:
+      stableService: api-gateway
+      canaryService: api-gateway-canary
+      steps:
+        - setWeight: 25
+        - pause: { duration: 30s }
+        - analysis:
+            templates:
+              - templateName: gateway-success-rate
+            args:
+              - name: canary-url
+                value: "http://api-gateway-canary:{{ .Values.service.port }}/health"
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - setWeight: 100
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.port }}

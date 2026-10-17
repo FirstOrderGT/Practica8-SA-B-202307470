@@ -1,0 +1,79 @@
+global:
+  namespace: sa-p8
+  environment: production
+
+# -------------------------------------------------------------
+# Microservicios (Subcharts con guiones)
+# -------------------------------------------------------------
+frontend:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/frontend
+    tag: v1
+    pullPolicy: Always
+
+api-gateway:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/api-gateway
+    tag: v1
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 8080
+
+auth-service:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/auth-service
+    tag: v1
+    pullPolicy: Always
+
+authz-service:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/authz-service
+    tag: v1
+    pullPolicy: Always
+
+cart-service:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/cart-service
+    tag: v1
+    pullPolicy: Always
+
+orders-service:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/orders-service
+    tag: v1
+    pullPolicy: Always
+
+products-service:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/products-service
+    tag: v1
+    pullPolicy: Always
+
+reviews-service:
+  image:
+    repository: us-central1-docker.pkg.dev/elated-bebop-507700-h3/sa-repo/reviews-service
+    tag: v1
+    pullPolicy: Always
+
+# -------------------------------------------------------------
+# Dependencias empaquetadas (Bitnami)
+# -------------------------------------------------------------
+postgresql:
+  image:
+    registry: us-central1-docker.pkg.dev
+    repository: elated-bebop-507700-h3/sa-repo/postgresql
+    tag: "15"
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "standard-rwo"
+      size: 1Gi
+    containerSecurityContext:
+      readOnlyRootFilesystem: false
+
+rabbitmq:
+  persistence:
+    enabled: true
+    storageClass: "standard-rwo"
+    size: 8Gi

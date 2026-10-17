@@ -1,0 +1,19 @@
+replicaCount: 2
+image:
+  repository: p4-authz-service
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  port: 4006
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70

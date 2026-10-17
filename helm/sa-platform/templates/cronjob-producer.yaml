@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-audit-logger
+  namespace: {{ .Values.global.namespace }}
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: cronjob-worker
+        spec:
+          serviceAccountName: cronjob-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: logger
+              image: postgres:15-alpine
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  export PGPASSWORD=$DB_PASS
+                  psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c \
+                  "CREATE TABLE IF NOT EXISTS cron_audit (id SERIAL PRIMARY KEY, executed_at TIMESTAMP, student_id VARCHAR(20));
+                   INSERT INTO cron_audit (executed_at, student_id) VALUES (NOW() AT TIME ZONE 'America/Guatemala', '202307470');"
+              env:
+                - name: DB_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-config
+                      key: DB_HOST
+                - name: DB_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-config
+                      key: DB_NAME
+                - name: DB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-secret
+                      key: DB_USER
+                - name: DB_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-secret
+                      key: DB_PASS
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 70
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true

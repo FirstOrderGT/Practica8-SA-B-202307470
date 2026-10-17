@@ -1,0 +1,60 @@
+global:
+  environment: production
+  logLevel: warn
+
+# Configuración de PostgreSQL (StatefulSet)
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  auth:
+    username: toy_admin
+    password: toy_secure_password_123
+    database: toy_store_db
+  primary:
+    persistence:
+      enabled: true
+      size: 4Gi
+
+rabbitmq:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: library/rabbitmq
+    tag: "3-management"
+    pullPolicy: IfNotPresent
+  auth:
+    username: rabbit_admin
+    password: rabbit_secure_password_123
+  persistence:
+    enabled: true
+    size: 4Gi
+  volumePermissions:
+    enabled: false
+  sysctlImage:
+    enabled: false
+  extraInitContainers: []
+  # Anular el fallo del init script si el chart lo renderiza
+  diagnosticMode:
+    enabled: false
+
+# Réplicas de producción para tus microservicios
+api-gateway:
+  replicaCount: 2
+auth-service:
+  replicaCount: 2
+authz-service:
+  replicaCount: 2
+products-service:
+  replicaCount: 2
+orders-service:
+  replicaCount: 2
+cart-service:
+  replicaCount: 2
+reviews-service:
+  replicaCount: 2
+frontend:
+  replicaCount: 2

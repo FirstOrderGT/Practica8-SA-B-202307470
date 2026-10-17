@@ -1,0 +1,87 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-audit-summary
+  namespace: {{ .Values.global.namespace }}
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: cronjob-worker
+        spec:
+          serviceAccountName: cronjob-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: summary
+              image: python:3.11-alpine
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  export HOME=/tmp
+                  export PYTHONUSERBASE=/tmp/.local
+                  export PATH=$PYTHONUSERBASE/bin:$PATH
+                  export TMPDIR=/tmp
+                  pip install --user --no-cache-dir psycopg2-binary pika
+                  python -c "
+                  import os, psycopg2, pika, json
+                  conn = psycopg2.connect(host=os.environ['DB_HOST'], database=os.environ['DB_NAME'], user=os.environ['DB_USER'], password=os.environ['DB_PASS'])
+                  cur = conn.cursor()
+                  cur.execute(\"SELECT date_trunc('hour', executed_at) as hr, count(*) FROM cron_audit GROUP BY hr;\")
+                  rows = cur.fetchall()
+                  summary = [{'hour': str(r[0]), 'count': r[1]} for r in rows]
+                  
+                  credentials = pika.PlainCredentials(os.environ['RABBITMQ_USER'], os.environ['RABBITMQ_PASS'])
+                  parameters = pika.ConnectionParameters(host=os.environ['RABBITMQ_HOST'], port=5672, credentials=credentials)
+                  connection = pika.BlockingConnection(parameters)
+                  channel = connection.channel()
+                  channel.queue_declare(queue='cron_summaries', durable=True)
+                  channel.basic_publish(exchange='', routing_key='cron_summaries', body=json.dumps(summary), properties=pika.BasicProperties(delivery_mode=2))
+                  connection.close()
+                  "
+              env:
+                - name: DB_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-config
+                      key: DB_HOST
+                - name: DB_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-config
+                      key: DB_NAME
+                - name: DB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-secret
+                      key: DB_USER
+                - name: DB_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-secret
+                      key: DB_PASS
+                - name: RABBITMQ_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-config
+                      key: RABBITMQ_HOST
+                - name: RABBITMQ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-secret
+                      key: RABBITMQ_USER
+                - name: RABBITMQ_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "sa-platform.fullname" . }}-secret
+                      key: RABBITMQ_PASS
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
