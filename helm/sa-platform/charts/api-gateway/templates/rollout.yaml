@@ -29,6 +29,18 @@ spec:
       labels:
         app.kubernetes.io/name: api-gateway
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - api-gateway
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: api-gateway
           image: "tu-usuario/api-gateway:{{ .Values.image.tag }}"
